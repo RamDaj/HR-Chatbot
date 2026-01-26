@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:HRChatbot.ViewModels"
+             xmlns:models="clr-namespace:HRChatbot.Models"
+             xmlns:converters="clr-namespace:HRChatbot.Converters"
+             x:Class="HRChatbot.MainPage"
+             x:DataType="viewmodels:ChatViewModel">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:RoleToColorConverter x:Key="RoleToColorConverter"/>
+            <converters:RoleToAlignmentConverter x:Key="RoleToAlignmentConverter"/>
+            <converters:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <Grid RowDefinitions="Auto,*" RowSpacing="0">
+        <!-- API Key Section -->
+        <Border Grid.Row="0" 
+                BackgroundColor="#512BD4"
+                Padding="15">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Entry Grid.Column="0"
+                       Text="{Binding ApiKey}"
+                       Placeholder="Enter OpenAI API Key"
+                       IsPassword="True"
+                       BackgroundColor="White"
+                       TextColor="Black"/>
+                <Button Grid.Column="1"
+                        Text="Save Key"
+                        Command="{Binding SaveApiKeyCommand}"
+                        BackgroundColor="#7B2CBF"
+                        TextColor="White"
+                        Padding="15,10"/>
+            </Grid>
+        </Border>
+
+        <!-- Chat Area -->
+        <Grid Grid.Row="1" RowDefinitions="*,Auto">
+            <!-- Messages List -->
+            <ScrollView Grid.Row="0">
+                <CollectionView ItemsSource="{Binding Messages}"
+                              BackgroundColor="#F5F5F5">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ChatMessage">
+                            <Grid Padding="10,5">
+                                <Frame BackgroundColor="{Binding Role, Converter={StaticResource RoleToColorConverter}}"
+                                      Padding="15"
+                                      HasShadow="True"
+                                      CornerRadius="10"
+                                      HorizontalOptions="{Binding Role, Converter={StaticResource RoleToAlignmentConverter}}">
+                                    <Label Text="{Binding Content}"
+                                          TextColor="Black"
+                                          FontSize="14"
+                                          LineBreakMode="WordWrap"/>
+                                </Frame>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </ScrollView>
+
+            <!-- Input Area -->
+            <Border Grid.Row="1"
+                    BackgroundColor="White"
+                    Padding="15"
+                    StrokeThickness="1"
+                    Stroke="#E0E0E0">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <Entry Grid.Column="0"
+                           Text="{Binding CurrentInput}"
+                           Placeholder="Type your message..."
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"
+                           BackgroundColor="#F5F5F5"
+                           Completed="OnEntryCompleted"/>
+                    <Button Grid.Column="1"
+                            Text="Send"
+                            Command="{Binding SendMessageCommand}"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"
+                            BackgroundColor="#512BD4"
+                            TextColor="White"
+                            Padding="20,10"/>
+                </Grid>
+            </Border>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator Grid.Row="1"
+                              IsRunning="{Binding IsLoading}"
+                              IsVisible="{Binding IsLoading}"
+                              Color="#512BD4"
+                              VerticalOptions="Center"
+                              HorizontalOptions="Center"/>
+        </Grid>
+    </Grid>
+</ContentPage>
