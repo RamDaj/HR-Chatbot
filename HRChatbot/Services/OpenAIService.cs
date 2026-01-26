@@ -196,33 +196,89 @@ public class OpenAIService : IOpenAIService
     }
 
     public async Task<bool> ValidateApiKeyAsync(string apiKey)
+{
+    if (string.IsNullOrWhiteSpace(apiKey))
     {
+        return false;
+    }
+
+    try
+    {
+        // Trim whitespace from API key
+        apiKey = apiKey.Trim();
+        
+        var testClient = new HttpClient();
+        testClient.BaseAddress = new Uri("https://api.openai.com/v1/");
+        testClient.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+        var testRequest = new
+        {
+            model = "gpt-3.5-turbo",
+            messages = new[]
+            {
+                new { role = "user", content = "test" }
+            },
+            max_tokens = 5
+        };
+
+        var json = JsonSerializer.Serialize(testRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await testClient.PostAsync("chat/completions", content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        
+        // Check for specific error codes
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            // 401 - Invalid API key
+            return false;
+        }
+        
+        // For rate limits and server errors, consider it valid (temporary issues)
+        if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests ||
+            response.StatusCode == System.Net.HttpStatusCode.InternalServerError ||
+            response.StatusCode == System.Net.HttpStatusCode.BadGateway ||
+            response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+        {
+            // These are temporary errors, not invalid key errors
+            return true;
+        }
+        
+        // For other errors, check the error message
         try
         {
-            var testClient = new HttpClient();
-            testClient.BaseAddress = new Uri("https://api.openai.com/v1/");
-            testClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-
-            var testRequest = new
-            {
-                model = "gpt-3.5-turbo",
-                messages = new[]
-                {
-                    new { role = "user", content = "test" }
-                },
-                max_tokens = 5
-            };
-
-            var json = JsonSerializer.Serialize(testRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await testClient.PostAsync("chat/completions", content);
+            var errorJson = JsonNode.Parse(responseContent);
+            var errorMessage = errorJson?["error"]?["message"]?.ToString() ?? "";
             
-            return response.IsSuccessStatusCode;
+            // If error message indicates invalid key, return false
+            if (errorMessage.Contains("Invalid API key", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("Incorrect API key", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("You didn't provide an API key", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
         }
         catch
         {
-            return false;
+            // If we can't parse the error, assume it's valid (might be a temporary issue)
         }
+        
+        // Default to false for unknown errors
+        return false;
     }
+    catch (HttpRequestException)
+    {
+        // Network errors - can't validate, but don't reject the key
+        return false;
+    }
+    catch
+    {
+        return false;
+    }
+}
 }

@@ -1,4 +1,4 @@
-﻿using HRChatbot.Data;
+using HRChatbot.Data;
 using HRChatbot.Functions;
 using HRChatbot.Services;
 using HRChatbot.ViewModels;
@@ -47,6 +47,13 @@ public static class MauiProgram
 		// Register ViewModels
 		builder.Services.AddTransient<ChatViewModel>();
 		builder.Services.AddTransient<MainPage>();
+		
+		// Register AppShell with factory to inject services
+		builder.Services.AddSingleton<AppShell>(serviceProvider => 
+		{
+			var shell = new AppShell(serviceProvider);
+			return shell;
+		});
 
 		return builder.Build();
 	}
