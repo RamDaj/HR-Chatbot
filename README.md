@@ -35,10 +35,17 @@ AI HR Chatbot - A .NET MAUI desktop application with OpenAI API integration and 
 To create a Windows executable (.exe):
 
 ```bash
-dotnet publish HRChatbot/HRChatbot.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained
+dotnet publish HRChatbot/HRChatbot.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 /p:SelfContained=false
 ```
 
-The executable will be in: `HRChatbot/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/`
+**Note:** This creates a framework-dependent deployment, which requires .NET 10.0 runtime to be installed on the target machine. The executable will be in: `HRChatbot/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/`
+
+**Alternative - Self-contained (if runtime packages are available):**
+If you need a self-contained executable that includes the .NET runtime, you can try:
+```bash
+dotnet publish HRChatbot/HRChatbot.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 /p:SelfContained=true /p:PublishSingleFile=true
+```
+However, this may not work with .NET 10.0 preview versions due to missing runtime packages.
 
 ## Adding Custom Functions
 
