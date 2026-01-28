@@ -27,7 +27,7 @@ AI HR Chatbot - A .NET MAUI desktop application with OpenAI API integration and 
    dotnet build HRChatbot/HRChatbot.csproj -f net10.0-windows10.0.19041.0
    ```
 4. Run the application
-5. Enter your OpenAI API key in the app and click "Save Key"
+5. Enter your OpenAI API key in the app and click "Save Key" (Key is saved locally)
 6. Start chatting!
 
 ## Building for Windows
