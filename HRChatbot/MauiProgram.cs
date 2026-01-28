@@ -30,8 +30,7 @@ public static class MauiProgram
 		var functionRegistry = new FunctionRegistry(dataContext);
 		
 		// Register example functions
-		functionRegistry.RegisterFunction(new SearchListFunction());
-		functionRegistry.RegisterFunction(new SortListFunction());
+		functionRegistry.RegisterFunction(new ChangeEmployeeName());
 		
 		builder.Services.AddSingleton<IFunctionRegistry>(functionRegistry);
 		
